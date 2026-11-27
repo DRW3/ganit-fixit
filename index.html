@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Fix-it v0</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Mukta:wght@400;500;600;700;800&display=swap">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* Layout: a child's exercise book. One phone-width ruled page with a red margin; four numbered pages turned from a tab bar; the tutor's remarks in red pen. */
+:root {
+  --paper: #FCFCF7; --rule: #DDE7F6; --margin: #F0B4AB;
+  --ink: #1B2440; --ink-soft: #5A6480; --card: #FFFFFF; --line: #D5DBE8;
+  --red: #CF3A2D; --red-soft: #FCE9E6; --green: #1B8F4E; --green-soft: #E3F5EA; --blue: #2553BE; --blue-soft: #E7EEFC; --hl: #FFE98A;
+  --text: "Mukta", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --pen: "Kalam", "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { background: #E9EDF4; color: var(--ink); font-family: var(--text); font-size: 16px; line-height: 1.45; }
+.book { max-width: 460px; margin: 0 auto; min-height: 100%; background-color: var(--paper);
+  background-image: linear-gradient(90deg, transparent 21px, var(--margin) 21px, var(--margin) 22.5px, transparent 22.5px), repeating-linear-gradient(180deg, transparent 0 31px, var(--rule) 31px 32px);
+  padding-block: 14px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); box-shadow: 0 0 0 1px var(--line); }
+.inner { padding-left: 18px; display: flex; flex-direction: column; gap: 14px; }
+header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.brand { font-weight: 800; font-size: 26px; letter-spacing: -0.01em; }
+.brand small { font-family: var(--pen); font-weight: 400; font-size: 16px; color: var(--red); margin-left: 6px; display: inline-block; transform: rotate(-2deg); }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.link { background: none; border: 0; padding: 4px 2px; color: var(--blue); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+h2 { font-size: 21px; line-height: 1.2; font-weight: 800; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.soft { color: var(--ink-soft); font-size: 14.5px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 0 rgba(27,36,64,.05); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1.5px solid var(--ink); border-radius: 10px; overflow: hidden; background: var(--card); }
+.seg button { border: 0; background: transparent; padding: 9px 6px; font-weight: 600; font-size: 14.5px; line-height: 1.2; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.q { font-size: 18px; font-weight: 600; line-height: 1.35; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.opt { min-height: 54px; border: 1.5px solid var(--ink); border-radius: 10px; background: var(--card); font-size: 17px; font-weight: 700; padding: 8px; font-variant-numeric: tabular-nums; }
+.opt:disabled { cursor: default; opacity: .55; }
+.opt.right { background: var(--green-soft); border-color: var(--green); color: var(--green); opacity: 1; }
+.opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); opacity: 1; text-decoration: line-through; }
+.pen { font-family: var(--pen); color: var(--red); font-size: 19px; line-height: 1.3; transform: rotate(-1.2deg); transform-origin: left center; }
+.pen.green { color: var(--green); } .pen.blue { color: var(--blue); }
+.note { border-left: 4px solid var(--blue); background: var(--blue-soft); border-radius: 0 10px 10px 0; padding: 10px 12px; font-size: 16px; }
+.note.red { border-color: var(--red); background: var(--red-soft); } .note.green { border-color: var(--green); background: var(--green-soft); }
+.note b { display: block; font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 2px; }
+.btn { border: 0; border-radius: 10px; background: var(--ink); color: #fff; font-weight: 700; padding: 12px 14px; font-size: 16px; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.row > * { min-width: 0; }
+.hl { background: linear-gradient(180deg, transparent 55%, var(--hl) 55%); padding: 0 2px; }
+.chip { display: inline-block; font-size: 12.5px; font-weight: 700; letter-spacing: .03em; border-radius: 99px; padding: 2px 10px; white-space: nowrap; }
+.chip.open { background: var(--red-soft); color: var(--red); } .chip.fixed { background: var(--green-soft); color: var(--green); }
+.mist { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: start; width: 100%; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.mist strong { font-size: 16.5px; } .mist span.s { grid-column: 1 / -1; font-size: 14px; color: var(--ink-soft); }
+.mist blockquote { grid-column: 1 / -1; margin: 6px 0 0; padding: 8px 10px; background: var(--paper); border-radius: 8px; font-size: 14.5px; }
+.dots { display: flex; gap: 8px; } .dots i { width: 34px; height: 34px; border-radius: 8px; border: 2px solid var(--line); display: grid; place-items: center; font-style: normal; font-weight: 800; color: var(--ink-soft); background: var(--card); }
+.dots i.now { border-color: var(--ink); color: var(--ink); } .dots i.ok { border-color: var(--green); color: var(--green); background: var(--green-soft); } .dots i.no { border-color: var(--red); color: var(--red); background: var(--red-soft); }
+.wa { background: #E4F6DC; border: 1px solid #BFE2B1; border-radius: 4px 14px 14px 14px; padding: 12px 14px; font-size: 16px; color: #17301A; display: flex; flex-direction: column; gap: 8px; }
+.wa .from { font-size: 12.5px; font-weight: 700; color: #2F7A3A; } .wa .time { align-self: flex-end; font-size: 11.5px; color: #55705A; }
+.mail { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; } .mail .sub { padding: 10px 14px; border-bottom: 1px solid var(--line); font-weight: 700; } .mail .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.replies { display: flex; flex-wrap: wrap; gap: 8px; } .replies button { border: 1.5px solid #2F7A3A; color: #2F7A3A; background: #fff; border-radius: 99px; padding: 6px 14px; font-weight: 700; font-size: 14.5px; }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; justify-content: center; background: rgba(252,252,247,.96); border-top: 1px solid var(--line); padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+nav.tabs div { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width: 100%; max-width: 460px; }
+nav.tabs button { border: 0; background: transparent; border-radius: 10px; padding: 6px 2px; font-size: 12.5px; font-weight: 600; line-height: 1.15; color: var(--ink-soft); display: flex; flex-direction: column; align-items: center; gap: 3px; }
+nav.tabs button b { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; font-size: 13.5px; }
+nav.tabs button[aria-current="page"] { color: var(--ink); background: var(--card); box-shadow: 0 0 0 1px var(--line); } nav.tabs button[aria-current="page"] b { background: var(--ink); color: #fff; border-color: var(--ink); }
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: #fff; padding: 9px 14px; border-radius: 10px; font-size: 14.5px; max-width: min(92vw, 420px); z-index: 9; }
+.sheet { position: fixed; inset: 0; background: rgba(27,36,64,.45); z-index: 20; display: grid; place-items: end center; }
+.sheet .card { width: 100%; max-width: 460px; border-radius: 16px 16px 0 0; padding: 18px max(18px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); max-height: 86%; overflow: auto; }
+.foot { font-size: 12.5px; color: var(--ink-soft); }
+@media (prefers-reduced-motion: no-preference) { .opt, .btn, nav.tabs button { transition: background-color .15s, color .15s, border-color .15s; } }
+</style>
+</head>
+<body>
+<div class="book"><div class="inner">
+  <header class="top">
+    <div class="brand">Fix-it <small>v0, a concept for Ganit</small></div>
+    <button class="link" id="aboutBtn" type="button">What is this?</button>
+  </header>
+  <main id="view"></main>
+  <p class="foot">Concept prototype for a product case study. Not a Bhanzu product. Everything runs in your browser and nothing is sent anywhere.</p>
+</div></div>
+
+<nav class="tabs" aria-label="Pages"><div>
+  <button type="button" data-tab="moment"><b>1</b>The moment</button>
+  <button type="button" data-tab="mistakes"><b>2</b>My mistakes</button>
+  <button type="button" data-tab="fixit"><b>3</b>Fix-it five</button>
+  <button type="button" data-tab="report"><b>4</b>Sunday report</button>
+</div></nav>
+<div class="toast" id="toast" hidden role="status"></div>
+<div class="sheet" id="sheet" hidden><div class="card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <h2 id="sheetTitle">What this is</h2>
+  <p>A working sketch of what my case study proposes for Ganit, so you can try it instead of reading about it.</p>
+  <p><b>1. The moment.</b> A wrong answer in a lesson check, played both ways: the answer straight away, or one question first. This is the A/B test in Section 1.</p>
+  <p><b>2. My mistakes.</b> The first seven are the real ones Ganit's "Check my work" found in my test pages on 26 Nov 2026. Today the app finds them and then forgets them. Here they are kept.</p>
+  <p><b>3. Fix-it five.</b> Five questions a day: look-alikes of the child's own mistakes with new numbers, two from the chapter the class is on, and a check that older fixes have held. Each wrong option is tagged with the slip that produces it, so the question that follows is instant.</p>
+  <p><b>4. Sunday report.</b> The one message a parent gets. It rewrites itself as mistakes are fixed.</p>
+  <p class="soft">Two of the seven mistakes start as fixed, and the report starts with example numbers, so the screens are not empty. Aarav is a made-up child.</p>
+  <div class="row"><button class="btn" id="sheetClose" type="button">Close</button><button class="btn ghost" id="resetBtn" type="button">Start again</button></div>
+</div></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, el) { return (el || document).querySelector(s); };
+  var el = function (tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  var rnd = function (a, b) { return a + Math.floor(Math.random() * (b - a + 1)); };
+  var pick = function (arr) { return arr[rnd(0, arr.length - 1)]; };
+  var shuffle = function (a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(0, i), t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+  var gcd = function (a, b) { return b ? gcd(b, a % b) : Math.abs(a); };
+  var frac = function (n, d) { var g = gcd(n, d); n /= g; d /= g; return d === 1 ? String(n) : n + "/" + d; };
+  var rs = function (n) { return "₹" + n.toLocaleString("en-IN"); };
+  var M = "−"; // a real minus sign
+
+  // ---- each skill: what the child got wrong, and what a parent can ask
+  var SKILLS = {
+    linear:    { name: "Solving an equation", slip: "Moved a term across the equals sign without changing its sign", ask: "what happens to " + M + "12 when it crosses the equals sign" },
+    fractions: { name: "Adding fractions", slip: "Turned sixths into twelfths with the wrong multiplier", ask: "how he turns 1/6 into twelfths" },
+    triangle:  { name: "Area of a triangle", slip: "Left the half out of the formula", ask: "why a triangle is half of a rectangle" },
+    percent:   { name: "Percentage increase", slip: "Subtracted the increase instead of adding it", ask: "whether a price goes up or down after a 20% increase" },
+    integers:  { name: "Signs in integers", slip: "Changed + 4 into " + M + " 4 between two lines", ask: "to read each sign aloud before the next line" },
+    identity:  { name: "Expanding (a " + M + " b)²", slip: "Forgot the 2 in the middle term", ask: "what the middle term of (a " + M + " b)² is" },
+    distribute:{ name: "Opening a bracket", slip: "Multiplied only the first term inside the bracket", ask: "to multiply 4 by both terms in 4(x + 5)" },
+    pattern:   { name: "Number patterns", slip: "Stopped one step early", ask: "which shelf has the number 18 on it" },
+    compare:   { name: "Comparing fractions", slip: "Compared the tops only", ask: "to give two fractions the same bottom number before comparing them" },
+    fracof:    { name: "A fraction of a fraction", slip: "Added instead of multiplying", ask: "whether a part of a fraction is bigger or smaller than the fraction" },
+    perimeter: { name: "Perimeter of a rectangle", slip: "Found the area instead", ask: "to trace the four sides with a finger and add them" },
+    areasq:    { name: "Area of a square", slip: "Found the perimeter instead", ask: "why the area of a square is side times side" },
+    addint:    { name: "Adding integers", slip: "Added the sizes and kept the minus", ask: "to show a sum like (" + M + "7) + 12 on a number line" },
+    mulint:    { name: "Multiplying integers", slip: "Got the sign of the product wrong", ask: "what the sign is when two negatives are multiplied" }
+  };
+
+  // ---- question makers. Every wrong option carries the slip that produces it and the one question that points at it.
+  var MAKE = {
+    pattern: function (fixed) {
+      var s = fixed ? 2 : pick([3, 4, 5]), n = fixed ? 10 : pick([10, 12, 15]);
+      var seq = [s, 2 * s, 3 * s, 4 * s].join(", ");
+      return { skill: "pattern", text: "The shelves of a library are numbered " + seq + " and so on. What is the number on the " + n + "th shelf?",
+        right: String(s * n), wrong: [
+          [String(s * (n - 1)), "Which shelf has the number " + s * (n - 1) + " on it?", true],
+          [String(n), "The 3rd shelf is numbered " + 3 * s + ". Is a shelf's number the same as its position?"],
+          [String(s * (n + 1)), s * (n + 1) + " is one shelf too far. Which shelf would that be?"]],
+        why: "Each shelf's number is " + s + " times its position. " + s + " × " + n + " = " + s * n + "." };
+    },
+    linear: function () {
+      var c = rnd(2, 4), a = c + 1, b = rnd(2, 5), d = rnd(2, 9), x = d + a * b;
+      return { skill: "linear", text: "Solve " + a + "(x " + M + " " + b + ") = " + c + "x + " + d,
+        right: "x = " + x, wrong: [
+          ["x = " + M + (a * b - d), "After opening the bracket you have " + a + "x " + M + " " + a * b + " = " + c + "x + " + d + ". To move " + M + a * b + " across, do you add " + a * b + " or subtract it?", true],
+          ["x = " + (d + b), "Open the bracket again. What is " + a + " × " + b + "?"],
+          ["x = " + (x + a), "Collect the x terms on one side first. What is " + a + "x " + M + " " + c + "x?"]],
+        why: a + "x " + M + " " + a * b + " = " + c + "x + " + d + ", so " + a + "x " + M + " " + c + "x = " + d + " + " + a * b + ", so x = " + x + "." };
+    },
+    fractions: function () {
+      var a = pick([1, 5]), b = pick([1, 3]), n = 2 * a + 3 * b;
+      return { skill: "fractions", text: "Work out " + a + "/6 + " + b + "/4",
+        right: frac(n, 12), wrong: [
+          [frac(3 * a + 3 * b, 12), "To turn sixths into twelfths, multiply top and bottom by the same number. 6 × ? = 12, so " + a + "/6 = ?/12", true],
+          [frac(a + b, 10), "Can sixths and fourths be added as they are? What size of piece do both fit into?"],
+          [frac(n, 24), "Once both are in twelfths, does the size of the piece change when you add them?"]],
+        why: a + "/6 = " + 2 * a + "/12 and " + b + "/4 = " + 3 * b + "/12. Together that is " + n + "/12" + (frac(n, 12) !== n + "/12" ? " = " + frac(n, 12) : "") + "." };
+    },
+    triangle: function () {
+      var b = pick([6, 8, 10, 12, 14]), h = pick([5, 7, 9, 11]);
+      return { skill: "triangle", text: "A triangle has base " + b + " cm and height " + h + " cm. What is its area?",
+        right: b * h / 2 + " cm²", wrong: [
+          [b * h + " cm²", "A triangle is half of the rectangle with the same base and height. What is that rectangle's area, and what is half of it?", true],
+          [b + h + " cm²", "Area needs two lengths multiplied. Which two?"],
+          [2 * (b + h) + " cm²", "That is the distance round a rectangle. What does area measure?"]],
+        why: "Area = half × base × height = half of " + b + " × " + h + " = " + b * h / 2 + " cm²." };
+    },
+    percent: function () {
+      var P = pick([200, 450, 600, 800, 1200]), p = pick([10, 20, 25]), inc = P * p / 100;
+      return { skill: "percent", text: "A bag costs " + rs(P) + ". Its price goes up by " + p + "%. What is the new price?",
+        right: rs(P + inc), wrong: [
+          [rs(P - inc), "The price went up. Should the new price be more than " + rs(P) + " or less?", true],
+          [rs(P + p), p + "% of " + rs(P) + " is not " + rs(p) + ". What is " + p + "% of " + P + "?"],
+          [rs(inc), rs(inc) + " is the increase. What is the new price?"]],
+        why: p + "% of " + P + " is " + inc + ". The price went up, so " + P + " + " + inc + " = " + rs(P + inc) + "." };
+    },
+    integers: function () {
+      var a = rnd(3, 9), b = rnd(2, 5), c = rnd(8, 15), d = rnd(2, 6), v = -a * b + c + d;
+      var f = function (n) { return n < 0 ? M + Math.abs(n) : String(n); };
+      return { skill: "integers", text: "Simplify (" + M + a + ") × " + b + " " + M + " (" + M + c + ") + " + d,
+        right: f(v), wrong: [
+          [f(-a * b + c - d), "You have " + M + a * b + " + " + c + " so far. Look at the last term in the question: is it + " + d + " or " + M + " " + d + "?", true],
+          [f(a * b + c + d), "What is the sign of (" + M + a + ") × " + b + "?"],
+          [f(-a * b - c + d), "Subtracting a negative: what does " + M + " (" + M + c + ") become?"]],
+        why: "(" + M + a + ") × " + b + " = " + M + a * b + ". Then " + M + " (" + M + c + ") is + " + c + ". So " + M + a * b + " + " + c + " + " + d + " = " + f(v) + "." };
+    },
+    identity: function () {
+      var m = pick([2, 3]), n = pick([3, 4, 5]);
+      return { skill: "identity", text: "Expand (" + m + "x " + M + " " + n + ")²",
+        right: m * m + "x² " + M + " " + 2 * m * n + "x + " + n * n, wrong: [
+          [m * m + "x² " + M + " " + m * n + "x + " + n * n, "What do you get when you multiply 2 × " + m + "x × " + n + "?", true],
+          [m * m + "x² " + M + " " + n * n, "(a " + M + " b)² has three terms. Which one is missing here?"],
+          [m * m + "x² + " + n * n, "(a " + M + " b)² has three terms. Which one is missing here?"]],
+        why: "(a " + M + " b)² = a² " + M + " 2ab + b². Here 2ab = 2 × " + m + "x × " + n + " = " + 2 * m * n + "x." };
+    },
+    distribute: function () {
+      var k = pick([3, 4, 5, 6]), m = pick([2, 5, 7]);
+      return { skill: "distribute", text: "Open the bracket: " + k + "(x + " + m + ")",
+        right: k + "x + " + k * m, wrong: [
+          [k + "x + " + m, "Multiply " + k + " by both terms inside the bracket. What is " + k + " × " + m + "?", true],
+          ["x + " + k * m, "Multiply " + k + " by both terms inside the bracket. What is " + k + " × x?"],
+          [k + "x + " + (k + m), "Is it " + k + " + " + m + " or " + k + " × " + m + "?"]],
+        why: k + " × x = " + k + "x and " + k + " × " + m + " = " + k * m + ", so " + k + "(x + " + m + ") = " + k + "x + " + k * m + "." };
+    }
+  };
+  MAKE.compare = function () {
+    var t = pick([[3, 5, 2, 3, 15], [3, 4, 5, 7, 28], [2, 5, 3, 8, 40], [5, 6, 7, 9, 18]]), a = t[0], b = t[1], c = t[2], d = t[3], l = t[4];
+    var x = a * l / b, y = c * l / d, big = x > y ? a + "/" + b : c + "/" + d, small = x > y ? c + "/" + d : a + "/" + b;
+    var hint = "Give both the same bottom number, " + l + ". " + a + "/" + b + " = ?/" + l + " and " + c + "/" + d + " = ?/" + l;
+    return { skill: "compare", text: "Which is larger: " + a + "/" + b + " or " + c + "/" + d + "?", right: big, wrong: [
+        [small, hint, true], ["They are equal", hint], ["Cannot tell", "Fractions with different bottom numbers can still be compared. " + hint]],
+      why: a + "/" + b + " = " + x + "/" + l + " and " + c + "/" + d + " = " + y + "/" + l + ", so " + big + " is larger." };
+  };
+  MAKE.fracof = function () {
+    var t = pick([["1/2", "3/4", "3/8", "5/4", "3/2", "1/4", "1 \u00D7 3 over 2 \u00D7 4"], ["1/3", "3/5", "1/5", "14/15", "9/5", "4/15", "1 \u00D7 3 over 3 \u00D7 5 = 3/15"],
+                  ["2/3", "3/4", "1/2", "17/12", "9/8", "1/12", "2 \u00D7 3 over 3 \u00D7 4 = 6/12"], ["1/2", "4/5", "2/5", "13/10", "8/5", "3/10", "1 \u00D7 4 over 2 \u00D7 5 = 4/10"]]);
+    return { skill: "fracof", text: "What is " + t[0] + " of " + t[1] + "?", right: t[2], wrong: [
+        [t[3], "\u201COf\u201D means multiply. Should " + t[0] + " of " + t[1] + " be bigger or smaller than " + t[1] + "?", true],
+        [t[4], "A part of something is smaller than it. Multiply the tops, then multiply the bottoms."],
+        [t[5], "\u201COf\u201D means multiply, not take away. What is top \u00D7 top over bottom \u00D7 bottom?"]],
+      why: t[0] + " \u00D7 " + t[1] + " is " + t[6] + ", which is " + t[2] + "." };
+  };
+  MAKE.perimeter = function () {
+    var t = pick([[8, 5], [9, 4], [10, 6], [12, 5], [7, 4]]), L = t[0], W = t[1];
+    return { skill: "perimeter", text: "A rectangle is " + L + " cm long and " + W + " cm wide. What is its perimeter?", right: 2 * (L + W) + " cm", wrong: [
+        [L * W + " cm", L * W + " is " + L + " \u00D7 " + W + ", which fills the inside. Perimeter is the distance round the edge. How long are the four sides?", true],
+        [L + W + " cm", "That is two of the sides. How many sides does a rectangle have?"],
+        [2 * L + W + " cm", "The four sides are " + L + ", " + W + ", " + L + " and " + W + ". What do they add up to?"]],
+      why: L + " + " + W + " + " + L + " + " + W + " = " + 2 * (L + W) + " cm." };
+  };
+  MAKE.areasq = function () {
+    var n = pick([6, 7, 8, 9, 11, 12]);
+    return { skill: "areasq", text: "A square has side " + n + " cm. What is its area?", right: n * n + " cm\u00B2", wrong: [
+        [4 * n + " cm\u00B2", 4 * n + " is the distance round the square. How many 1 cm squares fit inside it?", true],
+        [2 * n + " cm\u00B2", "Area is side \u00D7 side. What is " + n + " \u00D7 " + n + "?"],
+        [n * (n - 1) + " cm\u00B2", "Area is side \u00D7 side. What is " + n + " \u00D7 " + n + "?"]],
+      why: n + " \u00D7 " + n + " = " + n * n + " cm\u00B2." };
+  };
+  var sgn = function (n) { return n < 0 ? M + Math.abs(n) : String(n); };
+  MAKE.addint = function () {
+    var t = pick([[7, 12], [9, 4], [6, 15], [12, 5]]), a = t[0], b = t[1];
+    return { skill: "addint", text: "(" + M + a + ") + " + b + " = ?", right: sgn(b - a), wrong: [
+        [sgn(-(a + b)), "Start at " + M + a + " on a number line and move " + b + " steps to the right. Where do you land?", true],
+        [sgn(a + b), "One number is negative. Start at " + M + a + " and move " + b + " steps to the right. Where do you land?"],
+        [sgn(a - b), "Which is bigger in size, " + a + " or " + b + "? So which side of zero do you land on?"]],
+      why: "From " + M + a + ", " + b + " steps to the right lands on " + sgn(b - a) + "." };
+  };
+  MAKE.mulint = function () {
+    var t = pick([[-3, -5], [-4, 6], [-7, -2], [8, -3]]), x = t[0], y = t[1], br = function (n) { return n < 0 ? "(" + M + Math.abs(n) + ")" : String(n); };
+    var both = x < 0 && y < 0, size = Math.abs(x) + " \u00D7 " + Math.abs(y);
+    return { skill: "mulint", text: br(x) + " \u00D7 " + br(y) + " = ?", right: sgn(x * y), wrong: [
+        [sgn(-x * y), both ? "What is the sign when two negative numbers are multiplied?" : "What is the sign when a negative and a positive number are multiplied?", true],
+        [sgn(x + y), "This is a multiplication, not an addition. What is " + size + "?"],
+        [sgn(-(x + y)), "This is a multiplication, not an addition. What is " + size + "?"]],
+      why: size + " = " + Math.abs(x * y) + ", and " + (both ? "two negatives multiplied give a positive." : "a negative times a positive gives a negative.") };
+  };
+  var CHAPTERS = { "Fractions": ["compare", "fracof"], "Perimeter and area": ["perimeter", "areasq"], "The other side of zero": ["addint", "mulint"] };
+  var SAID = { // Ganit's own words on my test pages, 26 Nov 2026
+    linear: "You expanded 3(x " + M + " 4) to 3x " + M + " 12 perfectly! But take a closer look at the next step when moving " + M + "12 to the other side.",
+    fractions: "You found the correct LCM of 12 and converted the first two fractions nicely! However, there is a small slip when converting 1/6 into twelfths.",
+    triangle: "Interestingly, your final answer of 30 cm² is correct! But there's a missing part in the formula you wrote down.",
+    percent: "You calculated 20% of 450 = 90 accurately! However, check the wording of the question for what happens to the price next.",
+    integers: "You did great with (" + M + "8) × 3 = " + M + "24 and changing " + M + "(" + M + "15) to +15! However, take a close look at the sign in front of 4.",
+    identity: "You squared the first and last terms correctly, but check the middle term in your final line.",
+    distribute: "You expanded the left side correctly, but check the right side when distributing 4."
+  };
+
+  function seed() {
+    var order = ["fractions", "linear", "integers", "identity", "distribute", "triangle", "percent"];
+    return { tab: "moment", arm: "B", chapter: null, answered: 10, alone: 7, month: 12, set: null, openId: null,
+      mistakes: order.map(function (k, i) { return { id: i + 1, skill: k, src: "Check my work, 26 Nov", tries: k === "fractions" ? 3 : (i < 3 ? 1 : 0), fixed: k === "triangle" || k === "percent" }; }) };
+  }
+  var S = seed();
+  try { var saved = JSON.parse(localStorage.getItem("fixit-v0") || "null"); if (saved && saved.mistakes) { S = saved; S.set = null; } } catch (e) {}
+  function fromHash() { var h = (location.hash || "").replace("#", ""); if (VIEWS[h]) { S.tab = h; return true; } return false; }
+  function save() { try { localStorage.setItem("fixit-v0", JSON.stringify(S)); } catch (e) {} }
+  var toastT;
+  function toast(msg) { var t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 3200); }
+
+  // ---- one question, played as arm A (answer first) or arm B (one question first). done({first, alone, seconds, picked})
+  function play(host, q, arm, done) {
+    var t0 = Date.now(), tries = 0, first = false, shown = false;
+    var opts = shuffle([[q.right, null, false, true]].concat(q.wrong.map(function (w) { return [w[0], w[1], !!w[2], false]; })));
+    host.innerHTML = "";
+    host.appendChild(el("p", "q", q.text));
+    var grid = el("div", "opts"); host.appendChild(grid);
+    var out = el("div"); out.style.display = "flex"; out.style.flexDirection = "column"; out.style.gap = "10px"; host.appendChild(out);
+    function finish(alone) {
+      Array.prototype.forEach.call(grid.children, function (b) { b.disabled = true; if (b.dataset.right) b.classList.add("right"); });
+      var next = el("button", "btn", "Next"); next.type = "button";
+      next.onclick = function () { done({ first: first, alone: alone, seconds: Math.round((Date.now() - t0) / 1000) }); };
+      out.appendChild(next); next.focus();
+    }
+    function explain(lead) { out.appendChild(el("div", "note", "<b>The answer</b>" + (lead ? lead + " " : "") + q.right + ". " + q.why)); shown = true; finish(false); }
+    opts.forEach(function (o) {
+      var b = el("button", "opt", o[0]); b.type = "button"; if (o[3]) b.dataset.right = "1";
+      b.onclick = function () {
+        tries++;
+        if (o[3]) {
+          first = tries === 1;
+          out.innerHTML = ""; out.appendChild(el("p", "pen green", first ? "Right, first try." : "Yes. You fixed it yourself."));
+          if (!first) out.appendChild(el("div", "note green", "<b>Why</b>" + q.why));
+          finish(true); return;
+        }
+        b.classList.add("wrong"); b.disabled = true;
+        if (arm === "A" || tries > 1) { out.innerHTML = ""; out.appendChild(el("p", "pen", "Not quite.")); explain(""); return; }
+        out.innerHTML = "";
+        out.appendChild(el("p", "pen", "You chose " + o[0] + "."));
+        out.appendChild(el("div", "note red", "<b>One question</b>" + o[1]));
+        var r = el("div", "row"); r.appendChild(el("span", "soft", "Have another go above, or"));
+        var sm = el("button", "link", "show me"); sm.type = "button"; sm.onclick = function () { out.innerHTML = ""; explain(""); };
+        r.appendChild(sm); out.appendChild(r);
+      };
+      grid.appendChild(b);
+    });
+  }
+  function noteMistake(skill, src) {
+    var m = S.mistakes.filter(function (x) { return x.skill === skill && !x.fixed; })[0];
+    if (m) { m.tries++; return m; }
+    m = { id: Date.now(), skill: skill, src: src, tries: 1, fixed: false }; S.mistakes.unshift(m); return m;
+  }
+
+  // ---- page 1
+  var lastTimes = {};
+  function vMoment(v) {
+    v.appendChild(el("h2", null, "A wrong answer in a lesson. Play it both ways."));
+    v.appendChild(el("p", "soft", "This is the question I got wrong in my first Ganit lesson. Pick a wrong answer on purpose, once on each side."));
+    var seg = el("div", "seg"); seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "Which version");
+    [["A", "Today: answer first"], ["B", "Proposed: one question first"]].forEach(function (a) {
+      var b = el("button", null, a[1]); b.type = "button"; b.setAttribute("aria-pressed", String(S.arm === a[0]));
+      b.onclick = function () { S.arm = a[0]; save(); render(); }; seg.appendChild(b);
+    });
+    v.appendChild(seg);
+    var card = el("div", "card"); v.appendChild(card);
+    play(card, MAKE.pattern(true), S.arm, function (r) {
+      lastTimes[S.arm] = r.seconds;
+      if (!r.first) { noteMistake("pattern", "Lesson check, today"); toast("Saved to My mistakes. It comes back in 3 days."); }
+      S.answered++; if (r.alone) S.alone++; save();
+      card.innerHTML = "";
+      card.appendChild(el("p", "q", r.first ? "No mistake this time, so nothing to save." : (r.alone ? "The child produced the fix. That is what the test is betting on." : "The child read the fix. Did it stick? Only a re-test can say.")));
+      var both = lastTimes.A != null && lastTimes.B != null;
+      card.appendChild(el("p", "soft", "That took " + r.seconds + " seconds" + (both ? ". Answer first: " + lastTimes.A + " s. One question first: " + lastTimes.B + " s. The gap is the pace cost the experiment has to earn back." : ". Now try the other side and compare the seconds.")));
+      var row = el("div", "row");
+      var again = el("button", "btn ghost", "Play it again"); again.type = "button"; again.onclick = render; row.appendChild(again);
+      if (!r.first) { var ff = el("button", "btn", "Fast-forward 3 days"); ff.type = "button"; ff.onclick = function () { S.set = null; go("fixit"); }; row.appendChild(ff); }
+      card.appendChild(row);
+    });
+    v.appendChild(el("p", "pen blue", "Each wrong option is tagged with the slip behind it, so the question is ready before the child taps."));
+  }
+
+  // ---- page 2
+  function vMistakes(v) {
+    var fixed = S.mistakes.filter(function (m) { return m.fixed; }).length;
+    v.appendChild(el("h2", null, "My mistakes: <span class=\"hl\">" + fixed + " of " + S.mistakes.length + " fixed</span>"));
+    v.appendChild(el("p", "soft", "Ganit finds the first wrong step in a child's working and then forgets it. Here it is kept until a look-alike is answered right, first try, with no help. Tap one to see what Ganit said."));
+    S.mistakes.forEach(function (m) {
+      var k = SKILLS[m.skill], b = el("button", "mist"); b.type = "button"; b.setAttribute("aria-expanded", String(S.openId === m.id));
+      b.innerHTML = "<strong>" + k.name + "</strong><span class=\"chip " + (m.fixed ? "fixed\">Fixed" : "open\">Not fixed") + "</span><span class=\"s\">" + k.slip + ". " + m.src + (m.tries ? ", " + m.tries + (m.tries === 1 ? " try" : " tries") + " since" : "") + "</span>" +
+        (S.openId === m.id ? "<blockquote>" + (SAID[m.skill] ? "<b>Ganit said:</b> “" + SAID[m.skill] + "”" : "<b>From this prototype.</b> The wrong option you chose is tagged with this slip.") + "</blockquote>" : "");
+      b.onclick = function () { S.openId = S.openId === m.id ? null : m.id; render(); };
+      v.appendChild(b);
+    });
+    var go3 = el("button", "btn", "Do today's Fix-it five"); go3.type = "button"; go3.onclick = function () { go("fixit"); }; v.appendChild(go3);
+  }
+
+  // ---- page 3
+  function buildSet() {
+    var used = {}, qs = [];
+    function add(skill, tag, m, keep) { if (used[skill] || qs.length >= 5) return; used[skill] = 1; var q = MAKE[skill](); q.tag = tag; if (m) q.mid = m.id; if (keep) q.keep = true; qs.push(q); }
+    S.mistakes.filter(function (m) { return !m.fixed && MAKE[m.skill]; }).sort(function (a, b) { return b.tries - a.tries; }).slice(0, 3).forEach(function (m) { add(m.skill, "Your mistake", m); });
+    CHAPTERS[S.chapter].forEach(function (k) { add(k, "Today\u2019s chapter"); });
+    shuffle(S.mistakes.filter(function (m) { return m.fixed && MAKE[m.skill]; })).forEach(function (m) { add(m.skill, "Still fixed?", m, true); });
+    return { qs: qs, i: 0, res: [] };
+  }
+  function vFixit(v) {
+    v.appendChild(el("h2", null, "Fix-it five"));
+    if (!S.chapter) {
+      v.appendChild(el("p", "soft", "One question Ganit does not ask today. It decides what two of your five are about, and it is why the first session can help with tonight's homework."));
+      var c = el("div", "card"); c.appendChild(el("p", "q", "Which chapter is your class on?"));
+      Object.keys(CHAPTERS).forEach(function (name) { var b = el("button", "opt", name); b.type = "button"; b.style.fontSize = "16px"; b.onclick = function () { S.chapter = name; S.set = null; save(); render(); }; c.appendChild(b); });
+      v.appendChild(c);
+      v.appendChild(el("p", "pen blue", "All three are chapters Ganit lists as Coming Soon. Practice does not need a lesson to exist."));
+      return;
+    }
+    if (!S.set) S.set = buildSet();
+    var set = S.set, dots = el("div", "dots");
+    set.qs.forEach(function (q, i) { var d = el("i", i < set.res.length ? (set.res[i] ? "ok" : "no") : (i === set.i ? "now" : ""), String(i + 1)); dots.appendChild(d); });
+    v.appendChild(dots);
+    if (set.i >= set.qs.length) {
+      var ok = set.res.filter(Boolean).length;
+      var c2 = el("div", "card");
+      c2.appendChild(el("p", "q", "Done. " + ok + " of " + set.qs.length + " right first time."));
+      c2.appendChild(el("p", "pen green", S.month + " mistakes fixed this month."));
+      c2.appendChild(el("p", "soft", "What you missed comes back in 3 days with new numbers. Nothing here rewards minutes."));
+      var row = el("div", "row");
+      var rp = el("button", "btn", "See what the parent gets"); rp.type = "button"; rp.onclick = function () { go("report"); }; row.appendChild(rp);
+      var ag = el("button", "btn ghost", "Tomorrow's five"); ag.type = "button"; ag.onclick = function () { S.set = null; render(); }; row.appendChild(ag);
+      c2.appendChild(row); v.appendChild(c2); return;
+    }
+    var q = set.qs[set.i];
+    v.appendChild(el("p", "soft", "<b>" + q.tag + (q.keep ? "</b> " : ":</b> ") + SKILLS[q.skill].name + (q.keep ? ", fixed earlier. A new check that it has held." : q.mid ? ", with new numbers" : " (" + S.chapter + ")")));
+    var card = el("div", "card"); v.appendChild(card);
+    play(card, q, "B", function (r) {
+      S.answered++; if (r.alone) S.alone++;
+      if (q.mid) { var m = S.mistakes.filter(function (x) { return x.id === q.mid; })[0]; if (m) {
+        if (r.first) { if (!m.fixed) { m.fixed = true; S.month++; toast("Fixed. The red box turns green."); } }
+        else { if (m.fixed) { m.fixed = false; S.month = Math.max(0, S.month - 1); toast("It slipped. Back on the list, and back in 3 days."); } m.tries++; } } }
+      else if (!r.first) { noteMistake(q.skill, "Fix-it five, today"); toast("New mistake saved. It comes back in 3 days."); }
+      set.res.push(r.first); set.i++; save(); render();
+    });
+  }
+
+  // ---- page 4
+  function vReport(v) {
+    var fixed = S.mistakes.filter(function (m) { return m.fixed; }).length, total = S.mistakes.length;
+    var stuck = S.mistakes.filter(function (m) { return !m.fixed; }).sort(function (a, b) { return b.tries - a.tries; })[0];
+    v.appendChild(el("h2", null, "The one message a parent gets"));
+    var seg = el("div", "seg"); seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "Country");
+    [["wa", "India: WhatsApp, Sunday 7 pm"], ["mail", "USA: email, Sunday 5 pm"]].forEach(function (a) {
+      var b = el("button", null, a[1]); b.type = "button"; b.setAttribute("aria-pressed", String((S.rep || "wa") === a[0])); b.onclick = function () { S.rep = a[0]; save(); render(); }; seg.appendChild(b);
+    });
+    v.appendChild(seg);
+    var lines = ["<b>Aarav fixed " + fixed + " of " + total + " mistakes this week.</b>"];
+    if (stuck) lines.push("Still stuck: " + SKILLS[stuck.skill].name.toLowerCase() + (stuck.tries ? " (" + stuck.tries + (stuck.tries === 1 ? " try" : " tries") + ")" : "") + ".");
+    lines.push(S.alone + " of " + S.answered + " questions answered without asking to see the answer.");
+    if (stuck) lines.push("<i>One thing to do: ask Aarav " + SKILLS[stuck.skill].ask + ".</i>"); else lines.push("<i>Nothing is stuck this week. Ask Aarav which one was hardest.</i>");
+    var box;
+    if ((S.rep || "wa") === "wa") { box = el("div", "wa"); box.appendChild(el("span", "from", "Ganit")); lines.forEach(function (l) { box.appendChild(el("span", null, l)); }); box.appendChild(el("span", "time", "Sun 7:00 pm")); }
+    else { box = el("div", "mail"); box.appendChild(el("div", "sub", "Aarav\u2019s maths this week: " + fixed + " fixed, " + (total - fixed) + " to go")); var bd = el("div", "body"); lines.forEach(function (l) { bd.appendChild(el("span", null, l)); }); box.appendChild(bd); }
+    v.appendChild(box);
+    var rep = el("div", "replies");
+    [["Test this week", "The parent picks a date. Next week's five lean towards that chapter."], ["Marks", "The parent types the last test mark. It is the one outcome the app cannot see."]].forEach(function (r) { var b = el("button", null, r[0]); b.type = "button"; b.onclick = function () { toast(r[1]); }; rep.appendChild(b); });
+    if (stuck && stuck.tries >= 3) { var t = el("button", null, "Book 15 minutes with a teacher"); t.type = "button"; t.onclick = function () { toast("Three tries and still stuck: a Bhanzu teacher who can see the mistake takes over."); }; rep.appendChild(t); }
+    v.appendChild(rep);
+    v.appendChild(el("p", "soft", "It leads with what was fixed. No rank, no other children, and minutes are never the headline. It pauses for any child who tells the tutor they fear a parent's reaction."));
+    v.appendChild(el("p", "pen blue", "Go back to page 3, fix one, and watch this message change."));
+  }
+
+  var VIEWS = { moment: vMoment, mistakes: vMistakes, fixit: vFixit, report: vReport };
+  function render() {
+    var v = $("#view"); v.innerHTML = ""; v.style.display = "flex"; v.style.flexDirection = "column"; v.style.gap = "14px";
+    VIEWS[S.tab](v);
+    Array.prototype.forEach.call(document.querySelectorAll("nav.tabs button"), function (b) { if (b.dataset.tab === S.tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  }
+  function go(tab) { S.tab = tab; save(); render(); window.scrollTo(0, 0); }
+  Array.prototype.forEach.call(document.querySelectorAll("nav.tabs button"), function (b) { b.onclick = function () { go(b.dataset.tab); }; });
+  $("#aboutBtn").onclick = function () { $("#sheet").hidden = false; $("#sheetClose").focus(); };
+  $("#sheetClose").onclick = function () { $("#sheet").hidden = true; };
+  $("#sheet").onclick = function (e) { if (e.target === this) this.hidden = true; };
+  $("#resetBtn").onclick = function () { S = seed(); lastTimes = {}; save(); $("#sheet").hidden = true; render(); toast("Back to the start."); };
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") $("#sheet").hidden = true; });
+  window.addEventListener("hashchange", function () { if (fromHash()) render(); });
+  fromHash();
+  render();
+})();
+</script>
+</body>
+</html>
