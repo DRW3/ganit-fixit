@@ -97,7 +97,7 @@ nav.tabs button[aria-current="page"] { color: var(--ink); background: var(--card
   <h2 id="sheetTitle">What this is</h2>
   <p>A working sketch of what my case study proposes for Ganit, so you can try it instead of reading about it.</p>
   <p><b>1. The moment.</b> A wrong answer in a lesson check, played both ways: the answer straight away, or one question first. This is the A/B test in Section 1.</p>
-  <p><b>2. My mistakes.</b> The first seven are the real ones Ganit's "Check my work" found in my test pages on 26 Nov 2026. Today the app finds them and then forgets them. Here they are kept.</p>
+  <p><b>2. My mistakes.</b> The first seven are the real ones Ganit's "Check my work" found in my test pages on 26 Nov 2026. Today the app finds them, and nothing brings them back. Here they are kept.</p>
   <p><b>3. Fix-it five.</b> Five questions a day: look-alikes of the child's own mistakes with new numbers, two from the chapter the class is on, and a check that older fixes have held. Each wrong option is tagged with the slip that produces it, so the question that follows is instant.</p>
   <p><b>4. Sunday report.</b> The one message a parent gets. It rewrites itself as mistakes are fixed.</p>
   <p class="soft">Two of the seven mistakes start as fixed, and the report starts with example numbers, so the screens are not empty. Aarav is a made-up child.</p>
@@ -335,7 +335,7 @@ nav.tabs button[aria-current="page"] { color: var(--ink); background: var(--card
     v.appendChild(el("h2", null, "A wrong answer in a lesson. Play it both ways."));
     v.appendChild(el("p", "soft", "This is the question I got wrong in my first Ganit lesson. Pick a wrong answer on purpose, once on each side."));
     var seg = el("div", "seg"); seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "Which version");
-    [["A", "Today: answer first"], ["B", "Proposed: one question first"]].forEach(function (a) {
+    [["A", "Arm A: answer first"], ["B", "Arm B: one question first"]].forEach(function (a) {
       var b = el("button", null, a[1]); b.type = "button"; b.setAttribute("aria-pressed", String(S.arm === a[0]));
       b.onclick = function () { S.arm = a[0]; save(); render(); }; seg.appendChild(b);
     });
@@ -361,7 +361,7 @@ nav.tabs button[aria-current="page"] { color: var(--ink); background: var(--card
   function vMistakes(v) {
     var fixed = S.mistakes.filter(function (m) { return m.fixed; }).length;
     v.appendChild(el("h2", null, "My mistakes: <span class=\"hl\">" + fixed + " of " + S.mistakes.length + " fixed</span>"));
-    v.appendChild(el("p", "soft", "Ganit finds the first wrong step in a child's working and then forgets it. Here it is kept until a look-alike is answered right, first try, with no help. Tap one to see what Ganit said."));
+    v.appendChild(el("p", "soft", "Ganit finds the first wrong step in a child's working, and nothing brings it back. Here it is kept until a look-alike is answered right, first try, with no help. Tap one to see what Ganit said."));
     S.mistakes.forEach(function (m) {
       var k = SKILLS[m.skill], b = el("button", "mist"); b.type = "button"; b.setAttribute("aria-expanded", String(S.openId === m.id));
       b.innerHTML = "<strong>" + k.name + "</strong><span class=\"chip " + (m.fixed ? "fixed\">Fixed" : "open\">Not fixed") + "</span><span class=\"s\">" + k.slip + ". " + m.src + (m.tries ? ", " + m.tries + (m.tries === 1 ? " try" : " tries") + " since" : "") + "</span>" +
